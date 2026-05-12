@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<!-- HTMLの文書型を宣言するタグです -->
+<html lang="ja">
+<!-- 日本語のページであることを指定します -->
+
+<head>
+    <!-- 文字コードをUTF-8に指定し、文字化けを防ぎます -->
+    <meta charset="UTF-8">
+    <!-- スマートフォン（モバイル）での表示を最適化し、ズームを無効化します -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- ブラウザのタブに表示されるタイトルです -->
+    <title>Party Game Platform</title>
+    <!-- ここからCSS（デザイン・スタイル）の設定が始まります -->
+    <style>
+        /* ========================================================= */
+        /* CSS（デザイン・色の設定）                                */
+        /* ここを変えると色が変わります。背景色などを変更したい場合は以下を編集してください。 */
+        /* ========================================================= */
+
+        /* ページ全体で使う変数（カラーコードなど）を定義します */
+        :root {
+            /* 全体的な背景の初期色です */
+            --bg-color: #fdfdfd;
+            /* 文字の基本色です */
+            --text-color: #333333;
+            /* ここを変えると全体のボタンなどの色が変わります */
+            /* 全体的なテーマカラーやボタンの色を変えたい場合は、ここ（--btn-color）を変更してください */
+            --btn-color: #ff6b6b;
+            /* ボタンにカーソルを合わせた時（ホバー時）の色です */
+            --btn-hover: #ff4757;
+        }
+
+        /* ページ全体の基本スタイルを設定します */
+        body {
+            /* 背景色を変数から設定します */
+            background-color: var(--bg-color);
+            /* 文字色を変数から設定します */
+            color: var(--text-color);
+            /* 丸みのある見やすいフォントを指定します */
+            font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+            /* 背景色が変わる際に0.5秒かけて滑らかに変化（アニメーション）させます */
+            transition: background-color 0.5s ease;
+            /* 外側の余白をゼロにします */
+            margin: 0;
+            /* 内側の余白をゼロにします */
+            padding: 0;
+            /* 画面の中央に配置するためのFlexbox設定です */
+            display: flex;
+            /* 横方向の中央揃えです */
+            justify-content: center;
+            /* 縦方向の中央揃えです */
+            align-items: center;
+            /* 画面の高さを最低でもウィンドウサイズいっぱいにします */
+            min-height: 100vh;
+            /* テキストを中央揃えにします */
+            text-align: center;
+        }
+
+        /* アプリ全体を囲むコンテナのスタイルです */
+        #app-container {
+            /* 幅を画面いっぱいに広げます */
+            width: 100%;
+            /* 最大幅を500pxに制限して、スマホ風のサイズ感を保ちます */
+            max-width: 500px;
+            /* 内側に20pxの余白を設けます */
+            padding: 20px;
+            /* 余白を含めて幅を計算するように設定します */
+            box-sizing: border-box;
+        }
+
+        /* ここを変えると話し合い画面の色が変わります。 */
+        /* 話し合い時の背景色を変更したい場合は、この background-color の値を調整してください。 */
+        body.theme-day {
+            /* 明るいオレンジ・黄色系（活発な色）に設定します */
+            background-color: #fff9c4;
+            /* 文字色を少し暗めにして読みやすくします */
+            color: #333333;
+            /* 将来的に背景画像に差し替える場合はここを編集し、以下のコメントを外してください */
+            /* background-image: url('day-bg.jpg'); */
+            /* background-size: cover; */
+        }
+
+        /* ここを変えると夜・役職アクション画面の色が変わります。 */
+        /* 夜のフェーズの背景色を変更したい場合は、ここを編集してください。 */
+        body.theme-night {
+            /* 深い紺色に設定します */
+            background-color: #1a237e;
+            /* 暗い背景に合わせて文字を白色にします */
+            color: #ffffff;
+            /* 将来的に背景画像に差し替える場合はここを編集し、以下のコメントを外してください */
+            /* background-image: url('night-bg.jpg'); */
+            /* background-size: cover; */
+        }
+
+        /* ここを変えると投票や危機の画面の色が変わります。 */
+        /* 警告フェーズの背景色を変更したい場合は、ここを調整してください。 */
+        body.theme-crisis {
+            /* 警告を促す赤系に設定します */
+            background-color: #ffebee;
+            /* 文字色を少し暗めにして読みやすくします */
+            color: #333333;
+            /* 将来的に背景画像に差し替える場合はここを編集し、以下のコメントを外してください */
+            /* background-image: url('crisis-bg.jpg'); */
+            /* background-size: cover; */
+        }
+
+        /* 各画面（フェーズ）の基本状態は非表示（display: none）にします */
+        .screen {
+            display: none;
+            /* 画面が表示される際に下からフワッと現れるアニメーションを適用します */
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        /* .active クラスがついた画面だけを表示します */
+        .screen.active {
+            /* ブロック要素として表示します */
+            display: block;
+        }
+
+        /* フェードインのアニメーション定義です */
+        @keyframes fadeIn {
+
+            /* 開始時は透明（opacity: 0）で少し下にずらします */
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            /* 終了時は不透明（opacity: 1）で元の位置に戻します */
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ボタンの基本デザインです */
+        button {
+            /* 背景色を変数から取得します */
+            background-color: var(--btn-color);
+            /* ボタンの文字色を白にします */
+            color: white;
+            /* 枠線を消します */
+            border: none;
+            /* 角を丸くしてポップな印象にします */
+            border-radius: 30px;
+            /* 上下左右にたっぷり余白を取って押しやすくします */
+            padding: 15px 30px;
+            /* 文字の大きさを少し大きくします */
+            font-size: 1.2rem;
+            /* 文字を太字にします */
+            font-weight: bold;
+            /* ボタンの周りに余白を設けます */
+            margin: 10px;
+            /* マウスを乗せた時に指のマークにします */
+            cursor: pointer;
+            /* 押した時やホバー時の変化を滑らかにします */
+            transition: transform 0.2s, background-color 0.2s;
+            /* ボタンの下に影をつけて立体感を出します */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            /* スマホ画面に合わせて幅を広くします */
+            width: 80%;
+            /* 最大幅を300pxに制限します */
+            max-width: 300px;
+        }
+
+        /* ボタンにマウスを乗せた時（ホバー）や押した時のスタイルです */
+        button:hover,
+        button:active {
+            /* 少しだけボタンを大きくします */
+            transform: scale(1.05);
+            /* 背景色を少し濃い色に変えます */
+            background-color: var(--btn-hover);
+        }
+
+        /* ボタンが無効化（disabled）されている時のスタイルです */
+        button:disabled {
+            /* 灰色にして押せないことを示します */
+            background-color: #cccccc;
+            /* マウスカーソルを禁止マークにします */
+            cursor: not-allowed;
+            /* 拡大アニメーションを無効化します */
+            transform: none;
+        }
+
+        /* テキスト入力欄や数値入力欄のスタイルです */
+        input[type="text"],
+        input[type="number"] {
+            /* 幅を広めに取ります */
+            width: 80%;
+            /* 内側に余白を設けます */
+            padding: 15px;
+            /* 角を丸くします */
+            border-radius: 10px;
+            /* 薄い灰色の枠線をつけます */
+            border: 2px solid #dddddd;
+            /* スマホで押しやすい文字サイズにします */
+            font-size: 1.1rem;
+            /* 下に余白を設けます */
+            margin-bottom: 10px;
+            /* 余白を含めて幅を計算するように設定します */
+            box-sizing: border-box;
+        }
+
+        /* プレイヤーリストの枠組み（ulタグ）のスタイルです */
+        .player-list {
+            /* 先頭の黒ポチを消します */
+            list-style: none;
+            /* 内側の余白を消します */
+            padding: 0;
+            /* 上下に余白を設けます */
+            margin: 20px 0;
+        }
+
+        /* プレイヤーリストの各項目（liタグ）のスタイルです */
+        .player-item {
+            /* 横並びにするためにFlexboxを使用します */
+            display: flex;
+            /* 名前と削除ボタンを左右の端に配置します */
+            justify-content: space-between;
+            /* 縦方向の中央で揃えます */
+            align-items: center;
+            /* 薄い背景色をつけます */
+            background-color: #f5f6fa;
+            /* 内側に余白を設けます */
+            padding: 10px 20px;
+            /* 角を丸くします */
+            border-radius: 10px;
+            /* 下に隙間を空けます */
+            margin-bottom: 10px;
+            /* 文字色を濃いグレーにします */
+            color: #333333;
+            /* 文字を少し太くします */
+            font-weight: bold;
+        }
+
+        /* プレイヤー削除ボタンのスタイルです */
+        .delete-btn {
+            /* 赤色にして警告感を出します */
+            background-color: #e84118;
+            /* 余白を小さくします */
+            padding: 5px 15px;
+            /* 文字サイズを少し小さくします */
+            font-size: 0.9rem;
+            /* 幅は自動で調整させます */
+            width: auto;
+            /* 外側の余白を消します */
+            margin: 0;
+        }
+
+        /* ルールなどを表示するモーダル（ポップアップ）の全体設定です */
+        .modal {
+            /* 初期状態では非表示にします */
+            display: none;
+            /* 画面の最前面に固定します */
+            position: fixed;
+            /* 画面の左上に合わせます */
+            top: 0;
+            left: 0;
+            /* 画面いっぱいに広げます */
+            width: 100%;
+            height: 100%;
+            /* 背景を半透明の黒にします */
+            background-color: rgba(0, 0, 0, 0.5);
+            /* モーダルが他の要素の上に表示されるように重なり順を高くします */
+            z-index: 100;
+            /* 中身を中央揃えにするFlexbox設定です */
+            justify-content: center;
+            /* 縦方向の中央揃えです */
+            align-items: center;
+        }
+
+        /* モーダルを表示する時のクラスです */
+        .modal.active {
+            /* Flexboxとして表示します */
+            display: flex;
+        }
+
+        /* モーダルの白い中身部分の設定です */
+        .modal-content {
+            /* 背景色を白にします */
+            background-color: white;
+            /* 内側にたっぷり余白を取ります */
+            padding: 30px;
+            /* 角を丸くします */
+            border-radius: 15px;
+            /* 幅を画面の80%にします */
+            width: 80%;
+            /* 最大幅を400pxに制限します */
+            max-width: 400px;
+            /* 文字色を暗くします */
+            color: #333333;
+            /* テキストを左揃えにして読みやすくします */
+            text-align: left;
+        }
+
+        /* 話し合い時の巨大タイマーのスタイルです */
+        .timer-display {
+            /* 文字を極端に大きくします */
+            font-size: 4rem;
+            /* 太字にして目立たせます */
+            font-weight: bold;
+            /* 上下に大きな余白を設けます */
+            margin: 30px 0;
+            /* 色を赤系にして目立たせます */
+            color: #ff4757;
+        }
+
+        /* お題などを表示する巨大なテキストのスタイルです */
+        .huge-text {
+            /* 文字をとても大きくします */
+            font-size: 3rem;
+            /* 太字にします */
+            font-weight: bold;
+            /* 上下余白を設けます */
+            margin: 20px 0;
+            /* 緑系にして正解感や目立つ印象を出します */
+            color: #2ed573;
+        }
+
+        /* 警告メッセージ（エラー時など）のスタイルです */
+        .warning-text {
+            /* 色を赤にして警告感を出します */
+            color: #e84118;
+            /* 文字を少し小さくします */
+            font-size: 0.9rem;
+            /* 太字にします */
+            font-weight: bold;
+            /* 上に少し隙間を空けます */
+            margin-top: 5px;
+            /* 初期状態では非表示にします */
+            display: none;
+        }
+
+        /* 大きな空白（回し読み時の誤見防止用） */
+        .spacer {
+            /* 高さを100pxにして空間を作ります */
+            height: 100px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- アプリ全体のコンテナです -->
+    <div id="app-container">
+
+        <!-- ① トップページ（ゲーム選択画面） -->
+        <div id="screen-top" class="screen active">
+            <!-- 賑やかなタイトルの表示です -->
+            <h1>🎉 パーティーゲーム 🎉</h1>
+            <!-- ワードウルフを開始するボタンです -->
+            <button id="btn-wordwolf" onclick="startWordWolf()">ワードウルフ</button>
+            <br>
+            <!-- 人狼ゲームのボタンです（将来の拡張用のため、現在は押せません） -->
+            <!-- disabled属性でクリックできない状態にし、opacityで半透明にしています -->
+            <button id="btn-werewolf" disabled style="opacity: 0.5;">人狼ゲーム（準備中）</button>
+            <br><br>
+            <!-- ルールを確認するためのボタンです -->
+            <button onclick="showRulesModal()" style="background-color: #3498db;">ルール確認</button>
+        </div>
+
+        <!-- ② 設定入力画面 -->
+        <div id="screen-settings" class="screen">
+            <!-- 画面のタイトルです -->
+            <h2>⚙️ 設定入力</h2>
+
+            <!-- プレイヤー追加のセクションです -->
+            <div
+                style="background-color: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px;">
+                <!-- 見出しです -->
+                <h3>👤 プレイヤー追加</h3>
+                <!-- プレイヤー名を入力するテキストボックスです -->
+                <input type="text" id="input-player-name" placeholder="プレイヤー名を入力" maxlength="10">
+                <!-- 追加処理を実行するボタンです -->
+                <button onclick="addPlayer()" style="width: auto; padding: 10px 20px;">追加</button>
+                <!-- エラー時に表示される警告テキストです -->
+                <p id="player-warning" class="warning-text">名前を入力してください（重複不可）</p>
+            </div>
+
+            <!-- 追加されたプレイヤーが一覧表示されるリストです -->
+            <ul id="player-list" class="player-list"></ul>
+
+            <!-- ゲーム設定のセクションです -->
+            <div
+                style="background-color: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px;">
+                <!-- 見出しです -->
+                <h3>⏱️ ゲーム設定</h3>
+
+                <!-- タイマー設定のラベルです -->
+                <label style="font-weight:bold; display:block; margin-bottom:5px;">話し合い時間 (秒): </label>
+                <!-- ここを変えると制限時間が変わります（初期値） -->
+                <!-- デフォルトの秒数を変えたい場合は、この value="180" を変更してください -->
+                <input type="number" id="input-timer" value="180" min="10" max="600">
+
+                <!-- ウルフの人数設定のラベルです -->
+                <label style="font-weight:bold; display:block; margin-top:10px; margin-bottom:5px;">ウルフの人数: </label>
+                <!-- ウルフの数を入力する欄です -->
+                <input type="number" id="input-wolf-count" value="1" min="1">
+            </div>
+
+            <!-- 設定を完了してゲームを開始するボタンです -->
+            <button onclick="goToThemeCheck()" style="background-color: #2ed573;">ゲーム開始</button>
+            <br>
+            <!-- トップに戻るボタンです（グレー色） -->
+            <button onclick="changeScreen('screen-top')" style="background-color: #95a5a6;">戻る</button>
+        </div>
+
+        <!-- ③ お題確認画面（秘匿性の確保のため、1人ずつ確認します） -->
+        <div id="screen-theme-toggle" class="screen">
+            <!-- 「次は〇〇さんの番です」と表示される場所です -->
+            <h2 id="theme-toggle-title"></h2>
+
+            <!-- 回し読み時の注意書きです -->
+            <p style="color: #e67e22; font-weight: bold;">※周りの人に見られないように注意してください</p>
+
+            <!-- 誤って見えないようにするための大きな空間です -->
+            <div class="spacer"></div>
+
+            <!-- お題が表示されるコンテナです。初期状態では見えません -->
+            <div id="theme-word-container" style="display: none;">
+                <!-- 「あなたのお題は...」のテキストです -->
+                <p style="margin: 0; color: #7f8c8d;">あなたのお題は</p>
+                <!-- 実際のお題（巨大なテキスト）が表示される場所です -->
+                <div id="theme-word-display" class="huge-text"></div>
+            </div>
+
+            <!-- お題の表示・非表示を切り替えるボタンです -->
+            <button id="btn-toggle-theme" onclick="toggleThemeVisibility()"
+                style="background-color: #9b59b6;">お題を表示する</button>
+            <br>
+            <!-- 確認が終わり、次の人に回すためのボタンです（初期は非表示） -->
+            <button id="btn-next-player" onclick="goToNextPlayer()"
+                style="display:none; background-color: #2ed573;">確認完了（隠して次へ）</button>
+        </div>
+
+        <!-- ④ 話し合い画面（ゲーム中） -->
+        <div id="screen-discussion" class="screen">
+            <!-- 画面のタイトルです -->
+            <h2>🗣️ 話し合いフェーズ</h2>
+            <!-- ウルフを探すように促すテキストです -->
+            <p>誰がウルフか話し合って見つけましょう！</p>
+
+            <!-- カウントダウンタイマーが大きく表示される場所です -->
+            <div id="discussion-timer" class="timer-display">03:00</div>
+
+            <!-- 話し合いを強制終了して投票へ進むボタンです -->
+            <button onclick="goToVote()" style="background-color: #e74c3c;">投票へ進む</button>
+        </div>
+
+        <!-- ⑤ 投票・結果発表画面 -->
+        <div id="screen-vote" class="screen">
+            <!-- 投票を促すタイトルです -->
+            <h2>👉 誰を追放しますか？</h2>
+            <!-- プレイヤー一覧の投票ボタンが生成される場所です -->
+            <div id="vote-buttons"></div>
+        </div>
+
+        <!-- ⑥ 結果発表 ＆ ウルフの逆転入力画面 -->
+        <div id="screen-result" class="screen">
+            <!-- 追放された人の役職結果が表示されるタイトルです -->
+            <h2 id="result-title"></h2>
+            <!-- 結果の詳細な説明テキストです -->
+            <p id="result-desc"></p>
+
+            <!-- ウルフが追放された場合に表示される逆転チャンスのエリアです -->
+            <div id="wolf-comeback-section"
+                style="display:none; background-color: white; padding: 20px; border-radius: 15px; margin-top: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <!-- 見出しです -->
+                <h3 style="color: #8e44ad;">🐺 ウルフの逆転チャンス！</h3>
+                <!-- 説明文です -->
+                <p>市民が話し合っていたお題を当ててください。</p>
+                <!-- 重要：入力時の注釈を動的に表示する場所です -->
+                <p id="wolf-guess-annotation" style="color:#e84118; font-weight:bold; font-size: 0.9em;"></p>
+
+                <!-- ウルフが予想を入力するテキストボックスです -->
+                <input type="text" id="input-wolf-guess" placeholder="市民のお題を入力">
+                <!-- 予想を確定するボタンです -->
+                <button onclick="checkWolfGuess()" style="background-color: #8e44ad;">予想を確定する</button>
+                <!-- 未入力時のエラーメッセージです -->
+                <p id="guess-warning" class="warning-text">お題を入力してください</p>
+            </div>
+
+            <!-- 予想が確定した後に表示される、最終的な勝敗判定ボタン群です -->
+            <div id="final-buttons" style="display:none; margin-top: 20px;">
+                <!-- ウルフの予想した文字を大きく表示します -->
+                <p style="color: #ffffff;">ウルフの予想：</p>
+                <div id="wolf-guess-display" class="huge-text"
+                    style="color: #f1c40f; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);"></div>
+
+                <!-- 人間が勝敗を判定するためのボタンです -->
+                <button onclick="finishGame('wolf')" style="background-color: #f39c12;">🎯 正解！ウルフの逆転勝利</button>
+                <button onclick="finishGame('citizen')" style="background-color: #3498db;">❌ 不正解！市民の勝利</button>
+            </div>
+
+            <!-- ゲームが完全に終了した後に表示されるトップへ戻るボタンです -->
+            <div id="end-actions" style="margin-top: 30px; display: none;">
+                <button onclick="changeScreen('screen-top')" style="background-color: #2c3e50;">トップページへ戻る</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ルール確認用のモーダルウィンドウ（ポップアップ）です -->
+    <div id="rules-modal" class="modal">
+        <!-- モーダルの中身（白い部分）です -->
+        <div class="modal-content">
+            <!-- タイトルです -->
+            <h2 style="text-align: center;">📜 ワードウルフのルール</h2>
+            <!-- ルールの説明文が箇条書きで並びます -->
+            <p>1. 参加者にはそれぞれ「お題」が配られます。</p>
+            <p>2. 多数派（市民）と少数派（ウルフ）で<b>似ているが異なるお題</b>が配られます。</p>
+            <p>3. 自分のお題について話し合い、会話のズレから誰がウルフかを探ります。</p>
+            <p>4. 制限時間後、一番ウルフだと思う人に投票して追放します。</p>
+            <p>5. 市民を追放してしまったら、<b>ウルフの勝利（市民の負け）</b>です。</p>
+            <p>6. ウルフを追放できても、ウルフが市民のお題を見事当てられたら<b>ウルフの逆転勝利</b>になります！</p>
+
+            <!-- モーダルを閉じるためのボタンです -->
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="hideRulesModal()" style="background-color: #7f8c8d;">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ここからJavaScript（裏側の動作ロジック）が始まります -->
+    <script>
+        // =========================================================
+        // 設定部分（初心者の方向け）
+        // =========================================================
+
+        // ここを変えると制限時間が変わります
+        // デフォルトの制限時間（秒）を設定する場所です。ここを変更すると初期のタイマー秒数が変わります。
+        // タイマーの長さを変更したい場合は、上の数値をいじってください（初期状態の秒数に影響します）。
+        let defaultTimerSeconds = 180;
+
+        // ここを変えると色が変わります
+        // 画面の背景色などを指定するクラス名です。CSSの記述に合わせてここを変更することでテーマが切り替わります。
+        // カラーリングを変えたい場合は、CSSの中にあるこのクラス名のスタイル設定を変更します。
+        const THEME_DAY = 'theme-day';
+        const THEME_NIGHT = 'theme-night';
+        const THEME_CRISIS = 'theme-crisis';
+
+        // =========================================================
+        // 変数の準備（データを保存しておく箱）
+        // =========================================================
+
+        // 参加するプレイヤーの名前を保存するリスト（配列）です
+        let players = [];
+        // 各プレイヤーに割り振られた役職とお題を保存するリストです
+        let assignedRoles = []; // 中身の例: { name: 'Aさん', role: 'citizen', theme: 'リンゴ' }
+        // 現在お題を確認しているプレイヤーが何番目かを表す数字です
+        let currentPlayerIndex = 0;
+        // タイマーを動かすための変数です
+        let timerInterval = null;
+        // 現在の残り時間（秒）を保存する変数です
+        let timerSeconds = defaultTimerSeconds;
+
+        // 市民とウルフの今回のお題を保存する変数です
+        let currentCitizenTheme = "";
+        let currentWolfTheme = "";
+
+        // お題が現在画面に表示されているかどうかを判定するフラグです
+        let isThemeVisible = false;
+
+        // =========================================================
+        // お題データ（100セット）
+        // =========================================================
+        // ワードウルフのお題として使われる100個のデータリストです。
+        // 新しいお題を追加・編集したい場合は、ここを書き換えてください。
+        // 例: { citizen: "市民のお題", wolf: "ウルフのお題" }
+        const wordWolfData = [
+            { citizen: "みかん", wolf: "オレンジ" },
+            { citizen: "ぶっかけうどん", wolf: "ざるうどん" },
+            { citizen: "海", wolf: "水泳" },
+            { citizen: "コーヒー", wolf: "コーラ" },
+            { citizen: "オオカミ", wolf: "犬" },
+            { citizen: "リモコン", wolf: "パソコン" },
+            { citizen: "フットサル", wolf: "サッカー" },
+            { citizen: "特急", wolf: "新幹線" },
+            { citizen: "キムチ鍋", wolf: "麻婆豆腐" },
+            { citizen: "おにぎり", wolf: "サンドイッチ" },
+            { citizen: "丸亀製麺", wolf: "ラーメン" },
+            { citizen: "ディズニー", wolf: "醤油" },
+            { citizen: "自転車", wolf: "原付" },
+            { citizen: "夜行バス", wolf: "タクシー" },
+            { citizen: "フェリー", wolf: "豪華客船" },
+            { citizen: "辞書", wolf: "グーグル検索" },
+            { citizen: "肝試し", wolf: "ホラー映画" },
+            { citizen: "ケーキ", wolf: "パフェ" },
+            { citizen: "アイス", wolf: "かき氷" },
+            { citizen: "肉じゃが", wolf: "シチュー" },
+            { citizen: "すき焼き", wolf: "焼肉" },
+            { citizen: "回転ずし", wolf: "刺身" },
+            { citizen: "ハンバーグ", wolf: "ステーキ" },
+            { citizen: "オムライス", wolf: "チャーハン" },
+            { citizen: "冷やし中華", wolf: "パスタ" },
+            { citizen: "たこ焼き", wolf: "お好み焼き" },
+            { citizen: "ビール", wolf: "お茶" },
+            { citizen: "忍者", wolf: "侍" },
+            { citizen: "スパークリングワイン", wolf: "チューハイ" },
+            { citizen: "電柱", wolf: "スカイツリー" },
+            { citizen: "めんつゆ", wolf: "醤油" },
+            { citizen: "こどもの日", wolf: "ひな祭り" },
+            { citizen: "浴槽", wolf: "シンク" },
+            { citizen: "ライフジャケット", wolf: "浮き輪" },
+            { citizen: "寺", wolf: "神社" },
+            { citizen: "古本屋", wolf: "図書館" },
+            { citizen: "飛び込み（水泳）", wolf: "バンジージャンプ" },
+            { citizen: "盆踊り", wolf: "クラブハウス" },
+            { citizen: "ノミ", wolf: "バッタ" },
+            { citizen: "メール", wolf: "文通" },
+            { citizen: "コアラ", wolf: "犯罪者" },
+            { citizen: "ゾウ", wolf: "新入社員" },
+            { citizen: "ハムスター", wolf: "チョコレート" },
+            { citizen: "カラス", wolf: "ハト" },
+            { citizen: "メダカ", wolf: "金魚" },
+            { citizen: "カブトムシ", wolf: "セミ" },
+            { citizen: "女王バチ", wolf: "働きアリ" },
+            { citizen: "ゴキブリ", wolf: "納豆" },
+            { citizen: "野球", wolf: "ソフトボール" },
+            { citizen: "テニス", wolf: "バドミントン" },
+            { citizen: "ドッヂボール", wolf: "バレーボール" },
+            { citizen: "ビリヤード", wolf: "野球" },
+            { citizen: "水泳", wolf: "トライアスロン" },
+            { citizen: "フィギアスケート", wolf: "早口言葉" },
+            { citizen: "柔道", wolf: "剣道" },
+            { citizen: "相撲", wolf: "プロレス" },
+            { citizen: "バイオリン", wolf: "ギター" },
+            { citizen: "ギター", wolf: "チェロ" },
+            { citizen: "ドラム", wolf: "ベース" },
+            { citizen: "カラオケ", wolf: "ライブ" },
+            { citizen: "テレビ", wolf: "YouTube" },
+            { citizen: "婚活パーティー", wolf: "Instagram" },
+            { citizen: "LINE", wolf: "メール" },
+            { citizen: "人生相談", wolf: "電話" },
+            { citizen: "写真", wolf: "動画" },
+            { citizen: "時計", wolf: "カレンダー" },
+            { citizen: "財布", wolf: "カバン" },
+            { citizen: "靴", wolf: "靴下" },
+            { citizen: "帽子", wolf: "マフラー" },
+            { citizen: "メガネ", wolf: "コンタクト" },
+            { citizen: "傘", wolf: "カッパ" },
+            { citizen: "鉛筆", wolf: "シャーペン" },
+            { citizen: "消しゴム", wolf: "修正テープ" },
+            { citizen: "ハサミ", wolf: "カッター" },
+            { citizen: "のり", wolf: "テープ" },
+            { citizen: "逮捕", wolf: "説教" },
+            { citizen: "ベッド", wolf: "布団" },
+            { citizen: "座椅子", wolf: "ソファ" },
+            { citizen: "冷蔵庫", wolf: "スーツケース" },
+            { citizen: "洗濯機", wolf: "掃除機" },
+            { citizen: "エアコン", wolf: "扇風機" },
+            { citizen: "風呂", wolf: "シャワー" },
+            { citizen: "トイレ", wolf: "ジム" },
+            { citizen: "鏡", wolf: "体重計" },
+            { citizen: "石鹸", wolf: "ボディソープ" },
+            { citizen: "柔軟剤", wolf: "リンス" },
+            { citizen: "靴ベラ", wolf: "歯ブラシ" },
+            { citizen: "タオル", wolf: "バスタオル" },
+            { citizen: "フェイスタオル", wolf: "トイレットペーパー" },
+            { citizen: "マスク", wolf: "消毒液" },
+            { citizen: "薬", wolf: "絆創膏" },
+            { citizen: "注射", wolf: "点滴" },
+            { citizen: "病院", wolf: "薬局" },
+            { citizen: "学校", wolf: "塾" },
+            { citizen: "ピエロ", wolf: "ヒーロー" },
+            { citizen: "部下", wolf: "生徒" },
+            { citizen: "アルバイト", wolf: "部下" },
+            { citizen: "おやじギャグ", wolf: "ありがとう" },
+            { citizen: "骨折", wolf: "捻挫" },
+            { citizen: "スニーカー", wolf: "サンダル" }
+        ];
+
+        /* 
+        =================================================
+        将来の拡張用（人狼ゲームの役職定義の雛形）
+        ここを有効化（コメントアウトを解除）すると、他のゲームが追加しやすくなります。
+        役職の種類や能力を追加したい場合は、ここのオブジェクトを編集します。
+        =================================================
+        */
+        /*
+        const rolesData = {
+            werewolf: {
+                id: "werewolf",
+                name: "人狼",
+                description: "夜に一人を襲撃できます。",
+                actionType: "attack" // アクションの種類
+            },
+            seer: {
+                id: "seer",
+                name: "占い師",
+                description: "夜に一人の正体を知ることができます。",
+                actionType: "divine"
+            },
+            knight: {
+                id: "knight",
+                name: "騎士",
+                description: "夜に一人を人狼の襲撃から守ることができます。",
+                actionType: "protect"
+            },
+            citizen: {
+                id: "citizen",
+                name: "市民",
+                description: "特別な能力はありません。",
+                actionType: "none"
+            }
+        };
+
+        // アクション履歴（誰が誰を占ったか、守ったかの一時保存変数）
+        // 夜の行動結果を保存しておくための変数です。
+        // let nightActions = {
+        //     attackTarget: null,
+        //     divineTarget: null,
+        //     protectTarget: null
+        // };
+
+        // 夜のアクション画面の雛形（UI構築用関数）
+        // 役職ごとの特殊な画面を表示するための関数の枠組みです。
+        // function showNightActionScreen(playerRole) {
+        //     // ここで役職ごとの選択リストを表示する処理を書きます。
+        //     console.log(playerRole + "のアクション画面を表示します。");
+        // }
+        */
+
+        // =========================================================
+        // 音響演出（Web Audio API）の処理
+        // 外部ファイルを使わず、JavaScriptだけで音を鳴らします。
+        // =========================================================
+        let audioCtx = null;
+
+        // 音声を再生するための準備をする関数です（ユーザーがクリックした時に呼び出されます）
+        function initializeAudioContext() {
+            // まだ作成されていない場合は新しく作ります
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            // もし停止状態なら再開します（ブラウザの制限対策です）
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        // 指定された種類の音を鳴らす関数です
+        function playSound(type) {
+            // まず音声の準備をします
+            initializeAudioContext();
+
+            // 音を作る装置（オシレーター）を作ります
+            const oscillator = audioCtx.createOscillator();
+            // 音の大きさを調整する装置（ゲイン）を作ります
+            const gainNode = audioCtx.createGain();
+
+            // 装置同士を繋ぎます（オシレーター → ゲイン → スピーカー）
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            // 現在の時間を取得します
+            const now = audioCtx.currentTime;
+
+            // 鳴らす音の種類によって設定を変えます
+            switch (type) {
+                case 'select':
+                    // 決定音（ピッ）： ボタン押下時
+                    oscillator.type = 'sine'; // まろやかな音（サイン波）
+                    oscillator.frequency.setValueAtTime(880, now); // 高めの音程
+                    gainNode.gain.setValueAtTime(0.3, now); // 音量を設定
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1); // 0.1秒ですぐ消える
+                    oscillator.start(now); // 再生開始
+                    oscillator.stop(now + 0.1); // 停止
+                    break;
+                case 'reveal':
+                    // お題表示音（ピロリン）： お題確認の切り替え時
+                    oscillator.type = 'triangle'; // 少し鋭い音（三角波）
+                    oscillator.frequency.setValueAtTime(523.25, now); // ドの音
+                    oscillator.frequency.setValueAtTime(659.25, now + 0.1); // 0.1秒後にミの音に変化
+                    gainNode.gain.setValueAtTime(0.3, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3); // 0.3秒で消える
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.3);
+                    break;
+                case 'warning':
+                    // 警告・終了音（ブブー）： タイマー終了、または入力ミス時
+                    oscillator.type = 'sawtooth'; // ギザギザの音（ノコギリ波、ブザーのような音）
+                    oscillator.frequency.setValueAtTime(150, now); // 低い音程
+                    gainNode.gain.setValueAtTime(0.3, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5); // 0.5秒で消える
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.5);
+                    break;
+                case 'phase':
+                    // フェーズ転換音（ジャーン）： 昼夜の切り替わり、結果発表時
+                    oscillator.type = 'square'; // 力強い音（矩形波）
+                    oscillator.frequency.setValueAtTime(220, now); // 低めの音
+                    oscillator.frequency.setValueAtTime(330, now + 0.1); // 和音のように少し変化させる
+                    gainNode.gain.setValueAtTime(0.2, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 1.5); // 1.5秒かけてゆっくり消える（余韻）
+                    oscillator.start(now);
+                    oscillator.stop(now + 1.5);
+                    break;
+            }
+        }
+
+        // =========================================================
+        // 画面切り替えと設定の基本ロジック
+        // =========================================================
+
+        // 指定したIDの画面だけを表示し、他を隠す関数です
+        function changeScreen(targetScreenId) {
+            // すべての画面から 'active' クラスを取り除いて非表示にします
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            // 目的の画面にだけ 'active' クラスを付けて表示します
+            document.getElementById(targetScreenId).classList.add('active');
+        }
+
+        // アプリ全体の背景色（テーマ）を変更する関数です
+        function setAppTheme(themeClass) {
+            // 一旦すべてのクラスを消します
+            document.body.className = '';
+            // 新しいクラス（色）が指定されていれば追加します
+            if (themeClass) {
+                document.body.classList.add(themeClass);
+            }
+        }
+
+        // =========================================================
+        // ゲーム設定画面の処理
+        // =========================================================
+
+        // トップ画面でワードウルフを選んだ時の処理です
+        function startWordWolf() {
+            playSound('select'); // 決定音を鳴らす
+            changeScreen('screen-settings'); // 設定画面に切り替える
+        }
+
+        // プレイヤーを追加する処理です
+        function addPlayer() {
+            playSound('select'); // 決定音を鳴らす
+            // 入力された文字を取得します
+            const inputField = document.getElementById('input-player-name');
+            // 前後の空白を消してきれいな文字列にします
+            const playerName = inputField.value.trim();
+            // 警告メッセージを表示する場所を取得します
+            const warningText = document.getElementById('player-warning');
+
+            // 何も入力されていない場合の例外処理です
+            if (!playerName) {
+                warningText.textContent = '名前を入力してください'; // エラー内容を設定
+                warningText.style.display = 'block'; // エラーを表示
+                playSound('warning'); // 警告音を鳴らす
+                return; // ここで処理を中断します
+            }
+            // 既に同じ名前の人がいる場合の例外処理です
+            if (players.includes(playerName)) {
+                warningText.textContent = '既に同じ名前があります';
+                warningText.style.display = 'block';
+                playSound('warning');
+                return; // 処理を中断します
+            }
+
+            // 問題なければ警告を隠します
+            warningText.style.display = 'none';
+            // プレイヤーリストに名前を追加します
+            players.push(playerName);
+            // 入力欄を空っぽに戻します
+            inputField.value = '';
+            // 画面のリストを更新して表示します
+            renderPlayerList();
+        }
+
+        // プレイヤーを削除する処理です
+        function removePlayer(playerName) {
+            playSound('select'); // 決定音を鳴らす
+            // 選ばれた名前以外のプレイヤーだけを残してリストを上書きします
+            players = players.filter(p => p !== playerName);
+            // 画面のリストを更新します
+            renderPlayerList();
+        }
+
+        // プレイヤーの一覧を画面に表示するための処理です
+        function renderPlayerList() {
+            // リストを表示する場所を取得します
+            const listElement = document.getElementById('player-list');
+            // 一旦中身をすべて空にします
+            listElement.innerHTML = '';
+
+            // プレイヤー全員分ループ（繰り返し）処理をします
+            players.forEach(playerName => {
+                // 新しいリスト項目（liタグ）を作ります
+                const listItem = document.createElement('li');
+                // クラス名をつけてデザインを当てます
+                listItem.className = 'player-item';
+                // HTMLの中に名前と削除ボタンを埋め込みます
+                listItem.innerHTML = `<span>${playerName}</span> <button class="delete-btn" onclick="removePlayer('${playerName}')">削除</button>`;
+                // リストの中に項目を追加します
+                listElement.appendChild(listItem);
+            });
+        }
+
+        // 設定が終わって、お題確認へ進む時の処理です
+        function goToThemeCheck() {
+            playSound('select'); // 決定音を鳴らす
+            // 画面で入力されたウルフの人数を数値として取得します
+            const wolfCount = parseInt(document.getElementById('input-wolf-count').value);
+            // 画面で入力されたタイマーの秒数を取得します
+            timerSeconds = parseInt(document.getElementById('input-timer').value);
+
+            // プレイヤーが3人未満の場合はエラーにします
+            if (players.length < 3) {
+                alert("プレイヤーは3人以上必要です。");
+                return;
+            }
+            // ウルフの数がプレイヤー全員と同じか多い場合はエラーにします
+            if (wolfCount >= players.length) {
+                alert("ウルフの数はプレイヤーの人数より少なくしてください。");
+                return;
+            }
+
+            // プレイヤーの順番をランダムにシャッフルします
+            let shuffledPlayers = [...players].sort(() => Math.random() - 0.5);
+
+            // 用意した100個のお題からランダムに1セットを選びます
+            const themePair = wordWolfData[Math.floor(Math.random() * wordWolfData.length)];
+
+            // どちらのお題を市民用・ウルフ用にするか、50%の確率で反転させます（ランダム性を高めるため）
+            const isReversed = Math.random() > 0.5;
+            currentCitizenTheme = isReversed ? themePair.wolf : themePair.citizen;
+            currentWolfTheme = isReversed ? themePair.citizen : themePair.wolf;
+
+            // 役職とお題の割り当てリストを初期化します
+            assignedRoles = [];
+            // 全員に役職とお題を配ります
+            for (let i = 0; i < shuffledPlayers.length; i++) {
+                // 最初の数人（wolfCountの数だけ）をウルフにします
+                if (i < wolfCount) {
+                    assignedRoles.push({ name: shuffledPlayers[i], role: 'wolf', theme: currentWolfTheme });
+                } else {
+                    // 残りの人を市民にします
+                    assignedRoles.push({ name: shuffledPlayers[i], role: 'citizen', theme: currentCitizenTheme });
+                }
+            }
+
+            // 誰がウルフか推測できないように、配り終わった後にもう一度順番をシャッフルします
+            assignedRoles.sort(() => Math.random() - 0.5);
+
+            // 最初のプレイヤー（0番目）から確認を始めます
+            currentPlayerIndex = 0;
+            // 秘密の確認フェーズなので、夜のテーマ色（深い紺色）に設定します
+            setAppTheme(THEME_NIGHT);
+            // お題確認画面の準備をします
+            prepareThemeToggleScreen();
+        }
+
+        // =========================================================
+        // お題確認（回し読み）の処理
+        // =========================================================
+
+        // 次の人がお題を見るための画面を準備する処理です
+        function prepareThemeToggleScreen() {
+            // お題切り替え画面を表示します
+            changeScreen('screen-theme-toggle');
+            // 「次は〇〇さんの番です」と表示します
+            document.getElementById('theme-toggle-title').textContent = `次は ${assignedRoles[currentPlayerIndex].name} さんの番です`;
+            // その人のお題のテキストをセットします（まだ非表示です）
+            document.getElementById('theme-word-display').textContent = assignedRoles[currentPlayerIndex].theme;
+
+            // 初期状態として、お題は隠しておきます
+            isThemeVisible = false;
+            document.getElementById('theme-word-container').style.display = 'none';
+            // ボタンの文字を「表示する」に戻します
+            document.getElementById('btn-toggle-theme').textContent = 'お題を表示する';
+            // 「次へ」ボタンは隠しておきます
+            document.getElementById('btn-next-player').style.display = 'none';
+        }
+
+        // お題の「表示／非表示」を切り替える処理です
+        function toggleThemeVisibility() {
+            // 表示状態を反転させます（trueならfalse、falseならtrueに）
+            isThemeVisible = !isThemeVisible;
+
+            // お題を囲んでいるコンテナとボタン要素を取得します
+            const container = document.getElementById('theme-word-container');
+            const btnToggle = document.getElementById('btn-toggle-theme');
+
+            if (isThemeVisible) {
+                // お題を表示する場合
+                playSound('reveal'); // ピロリンという表示音を鳴らす
+                container.style.display = 'block'; // お題を見えるようにする
+                btnToggle.textContent = 'お題を隠す'; // ボタンの文字を変える
+                // 確認が終わったので「次へ」ボタンを表示する
+                document.getElementById('btn-next-player').style.display = 'inline-block';
+            } else {
+                // お題を隠す場合
+                playSound('select'); // ピッという決定音を鳴らす
+                container.style.display = 'none'; // お題を見えなくする
+                btnToggle.textContent = 'お題を表示する'; // ボタンの文字を戻す
+            }
+        }
+
+        // 現在の人が確認を終えて、次の人に進む時の処理です
+        function goToNextPlayer() {
+            playSound('select'); // 決定音を鳴らす
+
+            // 次の人の順番に進めます（インデックスを+1する）
+            currentPlayerIndex++;
+
+            // まだ確認していない人がいるかどうかをチェックします
+            if (currentPlayerIndex < assignedRoles.length) {
+                // いる場合は、次の人の画面を準備します
+                prepareThemeToggleScreen();
+            } else {
+                // 全員の確認が終わった場合は、話し合いフェーズに進みます
+                startDiscussion();
+            }
+        }
+
+        // =========================================================
+        // 話し合い・タイマーの処理
+        // =========================================================
+
+        // 全員の確認が終わり、話し合いを開始する処理です
+        function startDiscussion() {
+            playSound('phase'); // ジャーンというフェーズ転換音を鳴らす
+            // 話し合い用の明るい活発な色（昼のテーマ）に変更します
+            setAppTheme(THEME_DAY);
+            // 話し合い画面に切り替えます
+            changeScreen('screen-discussion');
+            // タイマーの表示を更新します
+            updateTimerDisplay();
+
+            // もし以前のタイマーが動いていたら止めます
+            if (timerInterval) clearInterval(timerInterval);
+
+            // 1秒（1000ミリ秒）ごとに処理を繰り返すタイマーをスタートします
+            timerInterval = setInterval(() => {
+                // 残り秒数を1秒減らします
+                timerSeconds--;
+                // 画面の数字を更新します
+                updateTimerDisplay();
+
+                // 時間が0以下になったら
+                if (timerSeconds <= 0) {
+                    // タイマーの繰り返しを止めます
+                    clearInterval(timerInterval);
+                    playSound('warning'); // ブブーという終了音を鳴らす
+                    // 自動的に投票画面へ進みます
+                    goToVote();
+                }
+            }, 1000);
+        }
+
+        // タイマーの残り時間を画面に綺麗に表示する処理です
+        function updateTimerDisplay() {
+            // 分（60で割った整数）を計算し、2桁（03など）にします
+            const minutes = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+            // 秒（60で割った余り）を計算し、2桁にします
+            const seconds = (timerSeconds % 60).toString().padStart(2, '0');
+            // 画面のタイマー表示部分のテキストを書き換えます
+            document.getElementById('discussion-timer').textContent = `${minutes}:${seconds}`;
+        }
+
+        // =========================================================
+        // 投票・結果発表・ウルフ逆転の処理
+        // =========================================================
+
+        // 話し合いが終わり、投票画面へ移動する処理です
+        function goToVote() {
+            playSound('select'); // 決定音を鳴らす
+            // まだタイマーが動いていたら止めます
+            if (timerInterval) clearInterval(timerInterval);
+
+            // 危機的な状況を示す警告の赤系（危機のテーマ）に変更します
+            setAppTheme(THEME_CRISIS);
+            // 投票画面に切り替えます
+            changeScreen('screen-vote');
+
+            // 投票ボタンを表示する場所を取得して、一旦中身を空にします
+            const voteContainer = document.getElementById('vote-buttons');
+            voteContainer.innerHTML = '';
+
+            // 全員分の投票ボタンを作ります
+            assignedRoles.forEach(playerData => {
+                const btn = document.createElement('button');
+                btn.textContent = `${playerData.name} に投票する`;
+                // ボタンが押されたら投票処理（handleVote）を実行するように設定します
+                btn.onclick = () => handleVote(playerData);
+                // 画面にボタンを追加します
+                voteContainer.appendChild(btn);
+            });
+        }
+
+        // 誰かに投票された時の処理です
+        function handleVote(votedPlayer) {
+            playSound('phase'); // ジャーンというフェーズ転換音を鳴らす
+            // 結果発表画面に切り替えます
+            changeScreen('screen-result');
+
+            // ウルフ逆転チャンスなどの不要な部分を一旦すべて隠します
+            document.getElementById('wolf-comeback-section').style.display = 'none';
+            document.getElementById('final-buttons').style.display = 'none';
+            document.getElementById('end-actions').style.display = 'none';
+            // 入力欄を空っぽにします
+            document.getElementById('input-wolf-guess').value = '';
+            document.getElementById('guess-warning').style.display = 'none';
+
+            // 追放された人（投票された人）がウルフだった場合
+            if (votedPlayer.role === 'wolf') {
+                // 結果のタイトルを表示します
+                document.getElementById('result-title').textContent = `${votedPlayer.name} は ウルフ でした！`;
+                document.getElementById('result-desc').textContent = `見事ウルフを追放しました。`;
+
+                // ウルフ逆転チャンスの入力エリアを表示します
+                document.getElementById('wolf-comeback-section').style.display = 'block';
+                // 重要：注釈を動的に設定して表示します
+                document.getElementById('wolf-guess-annotation').textContent = '※お題リストにある通りに、漢字・ひらがな・カタカナを正確に入力してください';
+            } else {
+                // 追放された人が市民だった場合（ウルフの勝利）
+                document.getElementById('result-title').textContent = `${votedPlayer.name} は 市民 でした...`;
+                document.getElementById('result-desc').textContent = `ウルフは生き残りました。市民の負け（ウルフの勝利）です！`;
+                // ゲーム終了なのでトップに戻るボタンを表示します
+                document.getElementById('end-actions').style.display = 'block';
+            }
+        }
+
+        // ウルフが市民のお題を予想して入力した文字を確認する処理です
+        function checkWolfGuess() {
+            // 入力された予想の文字列を取得し、前後の空白を消します
+            const guessText = document.getElementById('input-wolf-guess').value.trim();
+
+            // 何も入力されていない場合はエラーにして処理を止めます
+            if (!guessText) {
+                playSound('warning'); // ブブーという警告音
+                document.getElementById('guess-warning').style.display = 'block'; // エラーメッセージを表示
+                return;
+            }
+
+            playSound('reveal'); // ピロリンという表示音
+            // 入力エリアを隠します
+            document.getElementById('wolf-comeback-section').style.display = 'none';
+
+            // 人間が判定するための最終ボタン群を表示します
+            document.getElementById('final-buttons').style.display = 'block';
+            // ウルフが入力した予想の文字を巨大に表示します
+            document.getElementById('wolf-guess-display').textContent = guessText;
+        }
+
+        // 最終的な勝敗を画面に表示する処理です（正解・不正解ボタンが押された時に呼ばれます）
+        function finishGame(winner) {
+            playSound('phase'); // ジャーンというフェーズ転換音
+            // 判定ボタンを隠します
+            document.getElementById('final-buttons').style.display = 'none';
+
+            // 勝者がウルフ（正解した）の場合
+            if (winner === 'wolf') {
+                document.getElementById('result-title').textContent = `🎊 ウルフの逆転勝利！ 🎊`;
+                document.getElementById('result-desc').textContent = `見事、市民のお題「${currentCitizenTheme}」を当てました！`;
+            } else {
+                // 勝者が市民（不正解だった）の場合
+                document.getElementById('result-title').textContent = `🎉 市民の完全勝利！ 🎉`;
+                document.getElementById('result-desc').textContent = `ウルフはお題を当てられませんでした。（正解は「${currentCitizenTheme}」）`;
+            }
+            // ゲーム終了なのでトップに戻るボタンを表示します
+            document.getElementById('end-actions').style.display = 'block';
+        }
+
+        // =========================================================
+        // モーダル（ルール説明）の表示・非表示
+        // =========================================================
+
+        // ルール説明のポップアップを表示する処理です
+        function showRulesModal() {
+            playSound('select'); // 決定音
+            // モーダルに 'active' クラスを付けて画面に表示します
+            document.getElementById('rules-modal').classList.add('active');
+        }
+
+        // ルール説明のポップアップを隠す処理です
+        function hideRulesModal() {
+            playSound('select'); // 決定音
+            // モーダルから 'active' クラスを消して隠します
+            document.getElementById('rules-modal').classList.remove('active');
+        }
+    </script>
+</body>
+
+</html>
